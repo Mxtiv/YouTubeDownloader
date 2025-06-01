@@ -104,20 +104,21 @@ namespace Youtube_Video_Downloader
 
                 if (streamManifest != null)
                 {
-                    var muxedStreams = streamManifest.GetMuxedStreams()
+                    var videoStreams = streamManifest.GetVideoOnlyStreams()
                         .Where(s => s.Container.Name == "webm")
                         .OrderByDescending(s => s.VideoQuality.MaxHeight)
                         .ToList();
 
-                    foreach (var stream in muxedStreams)
+                    foreach (var stream in videoStreams)
                     {
-                        cmbVideoQuality.Items.Add(string.Format("{0} ({1})", stream.VideoQuality.Label, stream.Container.Name));
+                        cmbVideoQuality.Items.Add($"{stream.VideoQuality.Label} ({stream.Container.Name})");
                     }
 
                     if (cmbVideoQuality.Items.Count > 0)
                         cmbVideoQuality.SelectedIndex = 0;
                 }
             }
+
         }
 
         private async void btnDownload_Click(object sender, EventArgs e)
@@ -207,34 +208,65 @@ namespace Youtube_Video_Downloader
                     }
                     else if (format == "webm")
                     {
-                        // New webm logic: download muxed stream (video+audio combined)
-                        var muxedStreams = streamManifest.GetMuxedStreams()
+                        // Get video-only webm streams
+                        var videoStreams = streamManifest.GetVideoOnlyStreams()
                             .Where(s => s.Container.Name == "webm")
                             .OrderByDescending(s => s.VideoQuality.MaxHeight)
                             .ToList();
 
-                        if (muxedStreams.Count == 0)
+                        if (videoStreams.Count == 0)
                         {
-                            MessageBox.Show("No muxed webm streams available.");
+                            MessageBox.Show("No video-only WEBM streams available.");
                             return;
                         }
 
-                        int muxedIndex = cmbVideoQuality.SelectedIndex;
-                        if (muxedIndex < 0 || muxedIndex >= muxedStreams.Count)
-                            muxedIndex = 0;
+                        int videoIndex = cmbVideoQuality.SelectedIndex;
+                        if (videoIndex < 0 || videoIndex >= videoStreams.Count)
+                            videoIndex = 0;
 
-                        var selectedMuxedStream = muxedStreams[muxedIndex];
+                        var selectedVideoStream = videoStreams[videoIndex];
 
-                        string tempFile = Path.GetTempFileName() + "." + selectedMuxedStream.Container.Name;
+                        // Get audio-only webm streams
+                        var audioStreams = streamManifest.GetAudioOnlyStreams()
+                            .Where(s => s.Container.Name == "webm")
+                            .OrderByDescending(s => s.Bitrate)
+                            .ToList();
 
-                        await youtube.Videos.Streams.DownloadAsync(selectedMuxedStream, tempFile, new Progress<double>(p =>
+                        if (audioStreams.Count == 0)
                         {
-                            progressBar.Invoke((Action)(() => progressBar.Value = (int)(p * 100)));
+                            MessageBox.Show("No audio-only WEBM streams available.");
+                            return;
+                        }
+
+                        int audioIndex = cmbAudioQuality.SelectedIndex;
+                        if (audioIndex < 0 || audioIndex >= audioStreams.Count)
+                            audioIndex = 0;
+
+                        var selectedAudioStream = audioStreams[audioIndex];
+
+                        string tempVideoFile = Path.GetTempFileName() + "." + selectedVideoStream.Container.Name;
+                        string tempAudioFile = Path.GetTempFileName() + "." + selectedAudioStream.Container.Name;
+
+                        // Download video
+                        await youtube.Videos.Streams.DownloadAsync(selectedVideoStream, tempVideoFile, new Progress<double>(p =>
+                        {
+                            progressBar.Invoke((Action)(() => progressBar.Value = (int)(p * 50)));
                         }));
 
-                        File.Copy(tempFile, outputPath, true);
-                        File.Delete(tempFile);
+                        // Download audio
+                        await youtube.Videos.Streams.DownloadAsync(selectedAudioStream, tempAudioFile, new Progress<double>(p =>
+                        {
+                            progressBar.Invoke((Action)(() => progressBar.Value = 50 + (int)(p * 50)));
+                        }));
+
+                        // Merge using ffmpeg - output in webm
+                        string ffmpegArgs = $"-y -i \"{tempVideoFile}\" -i \"{tempAudioFile}\" -c:v copy -c:a libvorbis \"{outputPath}\"";
+                        await RunFFmpegAsync(ffmpegArgs);
+
+                        File.Delete(tempVideoFile);
+                        File.Delete(tempAudioFile);
                     }
+
                     else if (format == "mp3")
                     {
                         var audioStreams = streamManifest.GetAudioOnlyStreams()

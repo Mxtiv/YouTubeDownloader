@@ -96,7 +96,7 @@ namespace Youtube_Video_Downloader
             this.cmbVideoQuality.FormattingEnabled = true;
             this.cmbVideoQuality.Location = new System.Drawing.Point(194, 195);
             this.cmbVideoQuality.Name = "cmbVideoQuality";
-            this.cmbVideoQuality.Size = new System.Drawing.Size(121, 32);
+            this.cmbVideoQuality.Size = new System.Drawing.Size(200, 32);
             this.cmbVideoQuality.TabIndex = 4;
             // 
             // videoQuality
@@ -115,7 +115,7 @@ namespace Youtube_Video_Downloader
             this.audioQuality.AutoSize = true;
             this.audioQuality.Font = new System.Drawing.Font("Microsoft Sans Serif", 17F);
             this.audioQuality.ForeColor = System.Drawing.SystemColors.ButtonFace;
-            this.audioQuality.Location = new System.Drawing.Point(373, 198);
+            this.audioQuality.Location = new System.Drawing.Point(419, 198);
             this.audioQuality.Name = "audioQuality";
             this.audioQuality.Size = new System.Drawing.Size(161, 29);
             this.audioQuality.TabIndex = 6;
@@ -125,9 +125,9 @@ namespace Youtube_Video_Downloader
             // 
             this.cmbAudioQuality.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F);
             this.cmbAudioQuality.FormattingEnabled = true;
-            this.cmbAudioQuality.Location = new System.Drawing.Point(528, 195);
+            this.cmbAudioQuality.Location = new System.Drawing.Point(586, 195);
             this.cmbAudioQuality.Name = "cmbAudioQuality";
-            this.cmbAudioQuality.Size = new System.Drawing.Size(121, 32);
+            this.cmbAudioQuality.Size = new System.Drawing.Size(200, 32);
             this.cmbAudioQuality.TabIndex = 7;
             // 
             // btnDownload
@@ -164,7 +164,7 @@ namespace Youtube_Video_Downloader
             "webm"});
             this.cmbFileFormat.Location = new System.Drawing.Point(194, 247);
             this.cmbFileFormat.Name = "cmbFileFormat";
-            this.cmbFileFormat.Size = new System.Drawing.Size(121, 32);
+            this.cmbFileFormat.Size = new System.Drawing.Size(200, 32);
             this.cmbFileFormat.TabIndex = 10;
             this.cmbFileFormat.SelectedIndexChanged += new System.EventHandler(this.cmbFileFormat_SelectedIndexChanged);
             // 
